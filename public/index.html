@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+  <link rel="stylesheet" href="/auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <h2>เข้าสู่ระบบ</h2>
+    <form id="loginForm">
+      <label for="username">ชื่อผู้ใช้:</label>
+      <input type="text" id="username" name="username" required>
+      
+      <label for="password">รหัสผ่าน:</label>
+      <input type="password" id="password" name="password" required>
+      
+      <button type="submit">เข้าสู่ระบบ</button>
+    </form>
+    <div id="loginMessage" class="message"></div>
+    <div class="link">
+      <p>ยังไม่มีบัญชีผู้ใช้? <a href="/register.html">สมัครที่นี้เลย</a></p>
+    </div>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const loginMessage = document.getElementById('loginMessage');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(loginForm);
+      const data = Object.fromEntries(formData);
+
+      const response = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        loginMessage.textContent = result.message;
+        loginMessage.style.color = 'green';
+        setTimeout(() => {
+          window.location.href = result.redirectUrl;
+        }, 1000);
+      } else {
+        loginMessage.textContent = result.message;
+        loginMessage.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>

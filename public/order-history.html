@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<style>
+    .order-item {
+    padding: 15px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.order-item h3 {
+    margin: 0 0 5px;
+}
+</style>
+<body>
+    <a href="customer.html">สั่งซื้อสินค้า</a>
+    <h1>ประวัติการสั่งซื้อ</h1>
+    <div id="orderHistoryContainer"></div>
+
+    <script>
+        // Fetch and display order history
+        function loadOrderHistory() {
+            fetch('/order-history')
+                .then(response => response.json())
+                .then(orders => {
+                    const container = document.getElementById('orderHistoryContainer');
+                    container.innerHTML = ''; // Clear existing history
+    
+                    if (orders.length === 0) {
+                        container.innerHTML = '<p>No orders found.</p>';
+                        return;
+                    }
+    
+                    orders.forEach(order => {
+                        const orderItem = document.createElement('div');
+                        orderItem.classList.add('order-item');
+                        orderItem.innerHTML = `
+                            <h3>ออเดอร์ "${order.productName}"</h3>
+                            <p><strong>จำนวน:</strong> ${order.quantity}</p>
+                            <p><strong>สถานะ:</strong> ${order.status}</p>
+                            ${
+                                order.status === 'Pending'
+                                    ? `<button onclick="cancelOrder('${order._id}')">ยกเลิกออเดอร์</button>`
+                                    : ``
+                            }
+                        `;
+                        container.appendChild(orderItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading order history:', error);
+                    document.getElementById('orderHistoryContainer').innerHTML = '<p>Failed to load order history. Try again later.</p>';
+                });
+        }
+    
+        // Cancel order function
+        function cancelOrder(orderId) {
+            if (confirm('Are you sure you want to cancel this order?')) {
+                fetch('/cancel-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            alert(data.message);
+                            loadOrderHistory(); // Refresh the order history
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error canceling order:', error);
+                        alert('Failed to cancel order. Please try again later.');
+                    });
+            }
+        }
+    
+        // Load orders when the page is loaded
+        window.onload = loadOrderHistory;
+    </script>
+</body>
+</html>

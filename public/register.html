@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register</title>
+  <link rel="stylesheet" href="/auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <h2>สมัครสมาชิก</h2>
+    <form id="registerForm">
+      <label for="username">ชื่อผู้ใช้:</label>
+      <input type="text" id="username" name="username" required>
+      
+      <label for="password">รหัสผ่าน</label>
+      <input type="password" id="password" name="password" required>
+      
+      <label for="role">ตำแหน่ง:</label>
+      <select id="role" name="role" required>
+        <option value="Seller">ผู้ขาย</option>
+        <option value="Buyer">ผู้ซื้อ</option>
+      </select>
+      
+      <button type="submit">สมัครสมาชิก</button>
+    </form>
+    <div id="registerMessage" class="message"></div>
+    <div class="link">
+      <p>มีบัญชีผู้ใช้อยู่แล้ว? <a href="/index.html">เข้าสู่ระบบที่นี้</a></p>
+    </div>
+  </div>
+
+  <script>
+    const registerForm = document.getElementById('registerForm');
+    const registerMessage = document.getElementById('registerMessage');
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(registerForm);
+      const data = Object.fromEntries(formData);
+
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        registerMessage.textContent = result.message;
+        registerMessage.style.color = 'green';
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
+      } else {
+        registerMessage.textContent = result.message;
+        registerMessage.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>

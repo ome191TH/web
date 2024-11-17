@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Notifications</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>แจ้งเตือนคำสั่งซื้อ</h1>
+    <ul id="orders"></ul>
+
+    <div style="display: flex; justify-content: space-between   ;">
+        <div>
+            <a href="/add-product.html">เพิ่มสินค้าใหม่ </a>
+            <a href="/product-list.html">เช็คสต็อคของ</a>
+        </div>
+        <a href="/index.html" id="logout">ออกจากระบบ</a>
+    </div>
+
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const ordersList = document.getElementById('orders');
+        const socket = io();
+
+        function loadOrders() {
+    fetch('/orders')
+        .then(response => response.json())
+        .then(orders => {
+            ordersList.innerHTML = '';  // Clear old notifications
+
+            orders.forEach(order => { // No need to reverse, just prepend
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>
+                        มีคำสั่งซื้อ ${order.productName} โดย ${order.customerName} (จำนวน: ${order.quantity}, สถานะ: ${order.status})
+                        ${order.paymentProof ? `<br><a href="/uploads/${order.paymentProof}" target="_blank">ดูหลักฐานการโอนเงิน</a>` : ''}
+                        <br>
+                        <button onclick="confirmOrder('${order._id}')">ยืนยัน</button>
+                        <button onclick="completeOrder('${order._id}')">สำเร็จ</button>
+                        <button onclick="cancelOrder('${order._id}')">ยกเลิก</button>
+                        <button onclick="deleteOrder('${order._id}')">ลบ</button>
+                    </span>
+                `;
+                ordersList.prepend(li); // Add each order to the top
+            });
+        });
+}
+
+        function confirmOrder(orderId) {
+            fetch(`/confirm-order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ orderId }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.message) {
+                        alert(data.message);
+                        loadOrders(); // Reload the orders list to reflect changes
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error confirming order:', error);
+                    alert('Failed to confirm order. Please try again.');
+                });
+        }
+        function completeOrder(orderId) {
+            fetch(`/order/${orderId}/complete`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadOrders();  // โหลดข้อมูลคำสั่งซื้อใหม่หลังอัปเดต
+            });
+        }
+
+        function cancelOrder(orderId) {
+            fetch(`/order/${orderId}/cancel`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadOrders();  // โหลดข้อมูลคำสั่งซื้อใหม่หลังจากลบ
+            });
+        }
+
+        function deleteOrder(orderId) {
+            if (confirm('คุณแน้ใจหรือไม่ ที่จะลบออเดอร์นี้?')) {
+                fetch(`/order/${orderId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    loadOrders();  // โหลดข้อมูลคำสั่งซื้อใหม่หลังจากลบ
+                });
+            }
+        }
+
+        socket.on('new_order', (order) => {
+            loadOrders();  // โหลดข้อมูลคำสั่งซื้อใหม่เมื่อมีคำสั่งซื้อใหม่
+        });
+
+        socket.on('order_updated', (order) => {
+            loadOrders();  // โหลดข้อมูลคำสั่งซื้อใหม่เมื่ออัปเดตคำสั่งซื้อ
+        });
+
+        window.onload = loadOrders;
+    </script>
+</body>
+</html>

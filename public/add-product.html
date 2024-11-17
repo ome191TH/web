@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Product</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>เพิ่มสินค้าใหม่</h1>
+    <form id="productForm" enctype="multipart/form-data">
+        <label for="name">ชื่อสินค้า:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="price">ราคา:</label>
+        <input type="number" id="price" name="price" required><br><br>
+
+        <label for="quantity">จำนวน:</label>
+        <input type="number" id="quantity" name="quantity" required><br><br>
+
+        <label for="productImage">ใส่รูปสินค้า:</label>
+        <input type="file" id="productImage" name="productImage" accept="image/*"><br><br>
+
+        <button type="submit">เพิ่มสินค้า</button>
+    </form>
+
+    <div id="responseMessage"></div>
+
+    <a href="/index.html">การแจ้งเตือน</a>
+    <a href="/product-list.html">เช็คสต็อคของ</a>
+
+    <script>
+        const productForm = document.getElementById('productForm');
+        const responseMessage = document.getElementById('responseMessage');
+
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(productForm);
+
+            fetch('/products', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                responseMessage.textContent = data.message;
+                productForm.reset();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                responseMessage.textContent = 'Failed to add product. Try again.';
+            });
+        });
+    </script>
+</body>
+</html>
