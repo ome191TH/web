@@ -159,14 +159,12 @@
 
     <div style="display: flex; justify-content: space-between;">
         <a href="/order-history.html">ดูประวัติการสั่งซื้อ</a>
-        
+        <a href="/index.html" id="logout">ออกจากระบบ</a>
     </div>
 
     <div class="main-container">
         <form id="orderForm" enctype="multipart/form-data">
             <h1>สั่งซื้อสินค้า</h1>
-            <label for="customerName">กรอกชื่อ:</label>
-            <input type="text" id="customerName" name="customerName" required>
             <div id="nameError" class="error-message"></div>
 
             <div class="product-grid" id="productGrid"></div>
@@ -290,15 +288,16 @@ cancelBtn.addEventListener('click', hideModal);
             displaySelectedProducts();
         }
 
-        function removeProduct(productId) {
+function removeProduct(productId) {
     showModal('คุณแน่ใจหรือไม่ที่จะลบสินค้านี้ออกจากตะกร้า?', () => {
         const index = selectedProducts.findIndex(p => p.productId === productId);
         if (index > -1) {
-            selectedProducts.splice(index, 1); // Remove the product from the cart
+            selectedProducts.splice(index, 1); // Remove product from selectedProducts
         }
-        displaySelectedProducts(); // Update the shopping cart display
+        displaySelectedProducts(); // Update the cart UI
     });
 }
+
 
 
         function displaySelectedProducts() {
@@ -325,23 +324,14 @@ cancelBtn.addEventListener('click', hideModal);
         }
 
         orderForm.addEventListener('submit', (e) => {
-    e.preventDefault(); // Prevent form submission by default
+    e.preventDefault();
 
-    showModal('คุณแน่ใจใช่ไหมที่จะสั่งสินค้าเหล่านี้', () => {
-        // Validate payment proof
-        const paymentProofInput = document.getElementById('paymentProof');
-        if (!paymentProofInput.files || paymentProofInput.files.length === 0) {
-            alert('');
-            return;
-        }
-
-        // Validate product selection
+    showModal('คุณแน่ใจใช่ไหมที่จะสั่งสินค้าเหล่านี้?', () => {
         if (selectedProducts.length === 0) {
-            alert('กรุณาเลือกสินค้าก่อน.');
+            alert('กรุณาเพิ่มสินค้าในตะกร้าก่อนที่จะสั่ง');
             return;
         }
 
-        // Prepare and submit form data
         const formData = new FormData(orderForm);
         formData.append('selectedProducts', JSON.stringify(selectedProducts));
 
@@ -354,16 +344,18 @@ cancelBtn.addEventListener('click', hideModal);
             responseMessage.textContent = data.message;
             responseMessage.style.color = 'green';
             orderForm.reset();
-            selectedProducts.length = 0; // Clear the cart
-            displaySelectedProducts();
+            selectedProducts.length = 0; // Clear the cart after successful order
+            displaySelectedProducts(); // Refresh the cart UI
         })
         .catch(error => {
             console.error('Error:', error);
-            responseMessage.textContent = 'Failed to place order. Try again.';
+            responseMessage.textContent = 'ไม่สามารถสั่งสินค้าได้ กรุณาลองใหม่อีกครั้ง';
             responseMessage.style.color = 'red';
         });
     });
 });
+
+
 
 
         const socket = io();
