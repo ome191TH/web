@@ -14,12 +14,9 @@ const server = http.createServer(app);
 const io = socketIo(server);
 
 // MongoDB Setup
-mongoose.connect('mongodb://localhost/stockdb', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('Connection error:', err));
+mongoose.connect('mongodb://localhost/stockdb')
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Connection error:', err));
 
 // Configure Session with MongoDB for Persistence
 app.use(session({
